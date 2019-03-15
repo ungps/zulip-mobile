@@ -12,8 +12,8 @@ export function deeperMerge<K, V>(obj1: { [K]: V }, obj2: { [K]: V }): { [K]: V 
       obj1[key] === undefined
         ? obj2[key]
         : obj2[key] === undefined
-          ? obj1[key]
-          : { ...obj1[key], ...obj2[key] };
+        ? obj1[key]
+        : { ...obj1[key], ...obj2[key] };
     return newObj;
   }, ({}: { [K]: V }));
 }

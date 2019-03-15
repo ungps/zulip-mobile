@@ -272,6 +272,6 @@ export type GetState = () => GlobalState;
 export type PlainDispatch = <A: Action | NavigateAction>(action: A) => A;
 
 export interface Dispatch {
-  <A: Action | NavigateAction>(action: A): A;
-  <T>((Dispatch, GetState) => T): T;
+  <A: Action | NavigateAction>(action: A): A,
+  <T>((Dispatch, GetState) => T): T,
 }

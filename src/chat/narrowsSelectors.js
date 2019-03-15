@@ -55,8 +55,7 @@ const getFetchedMessagesForNarrow: Selector<Message[], Narrow> = createSelector(
 );
 
 // prettier-ignore
-export const getMessagesForNarrow:
-    Selector<$ReadOnlyArray<Message | Outbox>, Narrow> = createSelector(
+export const getMessagesForNarrow: Selector<$ReadOnlyArray<Message | Outbox>, Narrow> = createSelector(
   getFetchedMessagesForNarrow,
   outboxMessagesForNarrow,
   (fetchedMessages, outboxMessages) => {
@@ -106,26 +105,30 @@ export const getRecipientsInGroupNarrow: Selector<UserOrBot[], Narrow> = createS
 export const getStreamInNarrow = (
   narrow: Narrow,
 ): Selector<Subscription | {| ...Stream, in_home_view: boolean |}> =>
-  createSelector(getSubscriptions, getStreams, (subscriptions, streams) => {
-    if (!isStreamOrTopicNarrow(narrow)) {
+  createSelector(
+    getSubscriptions,
+    getStreams,
+    (subscriptions, streams) => {
+      if (!isStreamOrTopicNarrow(narrow)) {
+        return NULL_SUBSCRIPTION;
+      }
+
+      const subscription = subscriptions.find(x => x.name === narrow[0].operand);
+      if (subscription) {
+        return subscription;
+      }
+
+      const stream = streams.find(x => x.name === narrow[0].operand);
+      if (stream) {
+        return {
+          ...stream,
+          in_home_view: true,
+        };
+      }
+
       return NULL_SUBSCRIPTION;
-    }
-
-    const subscription = subscriptions.find(x => x.name === narrow[0].operand);
-    if (subscription) {
-      return subscription;
-    }
-
-    const stream = streams.find(x => x.name === narrow[0].operand);
-    if (stream) {
-      return {
-        ...stream,
-        in_home_view: true,
-      };
-    }
-
-    return NULL_SUBSCRIPTION;
-  });
+    },
+  );
 
 export const getIfNoMessages = (narrow: Narrow): Selector<boolean> =>
   createSelector(
@@ -141,14 +144,18 @@ export const getShowMessagePlaceholders = (narrow: Narrow): Selector<boolean> =>
   );
 
 export const isNarrowValid = (narrow: Narrow): Selector<boolean> =>
-  createSelector(getStreams, getAllUsersByEmail, (streams, allUsersByEmail) => {
-    if (isStreamOrTopicNarrow(narrow)) {
-      return streams.find(s => s.name === narrow[0].operand) !== undefined;
-    }
+  createSelector(
+    getStreams,
+    getAllUsersByEmail,
+    (streams, allUsersByEmail) => {
+      if (isStreamOrTopicNarrow(narrow)) {
+        return streams.find(s => s.name === narrow[0].operand) !== undefined;
+      }
 
-    if (isPrivateNarrow(narrow)) {
-      return allUsersByEmail.get(narrow[0].operand) !== undefined;
-    }
+      if (isPrivateNarrow(narrow)) {
+        return allUsersByEmail.get(narrow[0].operand) !== undefined;
+      }
 
-    return true;
-  });
+      return true;
+    },
+  );
