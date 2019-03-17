@@ -255,7 +255,9 @@ class ComposeBox extends PureComponent<Props, State> {
       const message = nextProps.editMessage ? nextProps.editMessage.content : '';
       this.setMessageInputValue(message);
       this.setTopicInputValue(topic);
-      if (this.messageInput) {
+      if (nextProps.editMessage == null) {
+        this.messageInput.blur();
+      } else if (this.messageInput) {
         this.messageInput.focus();
       }
     }

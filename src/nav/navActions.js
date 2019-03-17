@@ -9,11 +9,17 @@ import type {
   Narrow,
   ApiResponseServerSettings,
 } from '../types';
-import { getSameRoutesCount } from '../selectors';
+import { getSameRoutesCount, getSession } from '../selectors';
+import { cancelEditMessage } from '../actions';
 
-export const navigateBack = () => (dispatch: Dispatch, getState: GetState): NavigateAction =>
+export const navigateBack = () => (dispatch: Dispatch, getState: GetState): NavigateAction => {
   // $FlowFixMe
-  dispatch(NavigationActions.pop({ n: getSameRoutesCount(getState()) }));
+  if (getSession(getState()).editMessage) {
+    dispatch(cancelEditMessage());
+  } else {
+    dispatch(NavigationActions.pop({ n: getSameRoutesCount(getState()) }));
+  }
+};
 
 export const navigateToChat = (narrow: Narrow): NavigateAction =>
   NavigationActions.navigate({ routeName: 'chat', params: { narrow } });
