@@ -1,8 +1,12 @@
 /* @flow strict-local */
 import React, { PureComponent } from 'react';
 import { View } from 'react-native';
+import { connect } from 'react-redux';
 
-import { Input, Label, OptionRow, ZulipButton } from '../common';
+import { ErrorMsg, Input, Label, OptionRow, ZulipButton } from '../common';
+import type { Stream, GlobalState } from '../types';
+import { caseInsensitiveCompareFunc } from '../utils/misc';
+import { getStreams } from '../selectors';
 import styles from '../styles';
 
 type Props = {|
@@ -12,6 +16,7 @@ type Props = {|
     description: string,
     invite_only: boolean,
   },
+  streams: Stream[],
   onComplete: (name: string, description: string, isPrivate: boolean) => void,
 |};
 
@@ -19,19 +24,26 @@ type State = {|
   name: string,
   description: string,
   isPrivate: boolean,
+  error: ?string,
 |};
 
-export default class EditStreamCard extends PureComponent<Props, State> {
+class EditStreamCard extends PureComponent<Props, State> {
   state = {
     name: this.props.initialValues.name,
     description: this.props.initialValues.description,
     isPrivate: this.props.initialValues.invite_only,
+    error: undefined,
   };
 
   handlePerformAction = () => {
-    const { onComplete } = this.props;
+    const { onComplete, streams } = this.props;
     const { name, description, isPrivate } = this.state;
-    onComplete(name, description, isPrivate);
+
+    if (streams.find(stream => !caseInsensitiveCompareFunc(stream.name, name))) {
+      this.setState({ error: 'Stream name unavailable' });
+    } else {
+      onComplete(name, description, isPrivate);
+    }
   };
 
   handleNameChange = (name: string) => {
@@ -48,7 +60,7 @@ export default class EditStreamCard extends PureComponent<Props, State> {
 
   render() {
     const { initialValues, isNewStream } = this.props;
-    const { name } = this.state;
+    const { name, error } = this.state;
 
     return (
       <View>
@@ -72,6 +84,7 @@ export default class EditStreamCard extends PureComponent<Props, State> {
           defaultValue={initialValues.invite_only}
           onValueChange={this.handleIsPrivateChange}
         />
+        {error !== undefined && error !== null && <ErrorMsg error={error} />}
         <ZulipButton
           style={styles.marginTop}
           text={isNewStream ? 'Create' : 'Update'}
@@ -82,3 +95,7 @@ export default class EditStreamCard extends PureComponent<Props, State> {
     );
   }
 }
+
+export default connect((state: GlobalState) => ({
+  streams: getStreams(state),
+}))(EditStreamCard);
