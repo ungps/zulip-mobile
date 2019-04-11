@@ -24,7 +24,6 @@ type State = {|
   name: string,
   description: string,
   isPrivate: boolean,
-  error: ?string,
 |};
 
 class EditStreamCard extends PureComponent<Props, State> {
@@ -32,18 +31,13 @@ class EditStreamCard extends PureComponent<Props, State> {
     name: this.props.initialValues.name,
     description: this.props.initialValues.description,
     isPrivate: this.props.initialValues.invite_only,
-    error: undefined,
   };
 
   handlePerformAction = () => {
-    const { onComplete, streams } = this.props;
+    const { onComplete } = this.props;
     const { name, description, isPrivate } = this.state;
 
-    if (streams.find(stream => !caseInsensitiveCompareFunc(stream.name, name))) {
-      this.setState({ error: 'Stream name unavailable' });
-    } else {
-      onComplete(name, description, isPrivate);
-    }
+    onComplete(name, description, isPrivate);
   };
 
   handleNameChange = (name: string) => {
@@ -60,7 +54,11 @@ class EditStreamCard extends PureComponent<Props, State> {
 
   render() {
     const { initialValues, isNewStream } = this.props;
-    const { name, error } = this.state;
+    const { name } = this.state;
+
+    const invalidStreamName =
+      this.props.streams.find(stream => !caseInsensitiveCompareFunc(stream.name, name))
+      && caseInsensitiveCompareFunc(name, initialValues.name) !== 0;
 
     return (
       <View>
@@ -72,6 +70,7 @@ class EditStreamCard extends PureComponent<Props, State> {
           defaultValue={initialValues.name}
           onChangeText={this.handleNameChange}
         />
+        {invalidStreamName && <ErrorMsg error="Stream name unavailable" />}
         <Label text="Description" />
         <Input
           style={styles.marginBottom}
@@ -84,11 +83,10 @@ class EditStreamCard extends PureComponent<Props, State> {
           defaultValue={initialValues.invite_only}
           onValueChange={this.handleIsPrivateChange}
         />
-        {error !== undefined && error !== null && <ErrorMsg error={error} />}
         <ZulipButton
           style={styles.marginTop}
           text={isNewStream ? 'Create' : 'Update'}
-          disabled={name.length === 0}
+          disabled={name.length === 0 || name === initialValues.name || invalidStreamName}
           onPress={this.handlePerformAction}
         />
       </View>
