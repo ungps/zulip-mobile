@@ -38,10 +38,15 @@ export const getSubscribedStreams: Selector<Subscription[]> = createSelector(
   getStreams,
   getSubscriptions,
   (allStreams, allSubscriptions) =>
-    allSubscriptions.map(subscription => ({
-      ...subscription,
-      ...allStreams.find(stream => stream.stream_id === subscription.stream_id),
-    })),
+    allSubscriptions
+      .filter(subscription =>
+        allStreams.find(item => item.stream_id === subscription.stream_id)
+      )
+      .map(subscription => ({
+          ...subscription,
+          ...allStreams.find(item => item.stream_id === subscription.stream_id),
+        })
+      ),
 );
 
 export const getStreamFromId: Selector<Stream, number> = createSelector(
